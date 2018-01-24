@@ -3,7 +3,7 @@ Droid is a light weight Android Library
 
 <b>Start</b>
 
-<code>Droid driod  = new Droid(AppContext);</code>
+<code>final Droid driod  = new Droid(AppContext);</code>
 
 ## HTTP
 
@@ -27,7 +27,9 @@ Params:
   http.$Get("GET_ORDER", "http://api.order.com/getorder", new Runnable() {
             @Override
             public void run() {
-
+            
+             droid.$httpResponse.get("GET_ORDER").$Data // get response
+             
             }
         }, new Runnable() {
             @Override
@@ -47,6 +49,8 @@ Params:
         http.$Post("CREATE_ORDER", "http://api.order.com/createorder",postdata, new Runnable() {
             @Override
             public void run() {
+
+               droid.$httpResponse.get("CREATE_ORDER").$Data // get response
 
             }
         }, new Runnable() {
