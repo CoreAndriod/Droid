@@ -5,6 +5,8 @@ Droid is a light weight Android Library
 
 <code>final Droid driod  = new Droid(AppContext);</code>
 
+Note: This is unstable version
+
 ## HTTP
 
 <code>CoreHttp http = new CoreHttp(droid);</code>
@@ -129,11 +131,11 @@ if(session.$Check("Key") == session.$IsActive){
 ```
 CoreFileFolder orders = file.$Folder("/orders");
 ```
-### Write File
+### Write Text File
 ```
 orders.$WriteText("Item.txt","apple",false);
 ```
-### Read File
+### Read Text File
 ```
 orders.$ReadText("Item.txt",false);
 ```
