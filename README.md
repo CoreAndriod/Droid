@@ -198,6 +198,13 @@ orders.$DeleteDir();
 
 <code>CoreView view = new CoreView(droid,(Button)findViewById(R.id.clickable));</code>
 
+### GetView
+
+This is to allow you to use coreview to any view related method.
+
+```
+view.$GetView();
+```
 
 ### Event
 ```
@@ -225,7 +232,7 @@ EventResult Properties:
 <li>$View- View</li>
 <li>$HasFocus- Boolean</li>
 <li>$KeyCode- Integer</li>
-<li>$KeyEvent- $KeyEvent</li>
+<li>$KeyEvent- KeyEvent</li>
 <li>$MotionEvent- MotionEvent</li>
 
 </ul>
