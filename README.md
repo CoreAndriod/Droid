@@ -1,37 +1,39 @@
-# Installation 
-
-<b>Step 1</b>: Right click your app folder then select then click <code>Open Module Settings</code>
-<img src="http://edio.esy.es/droid/droid_imagestep1.png">
-
-<b>Step 2</b>: Click the add icon to add the AAR file/package</code>
-<img src="http://edio.esy.es/droid/droid_imagestep2.png">
-
-<b>Step 3</b>: Import the AAR file/package then a new will appear, then browse your AAR file</code>
-<img src="http://edio.esy.es/droid/droid_imagestep3.png">
-
-
-
-<b>Step 4</b>: Click the app folder then add the module(follow the steps from screen shot)</code>
-<img src="http://edio.esy.es/droid/droid_imagestep4.png">
-
-
-<b>Step 5</b>: The select the droid module and click Ok</code>
-<img src="http://edio.esy.es/droid/droid_imagestep6.png">
-
-<b>Step 6</b>: Finally import droid library to your java code, and Done! :)</code>
-<img src="http://edio.esy.es/droid/droid_imagestep7.png">
-
-
-
 
 # Droid
-Droid is a light weight Android Library  
+Droid is a light weight Android Library to make great app from less code.  
 
 <b>Start</b>
 
 <code>final Droid driod  = new Droid(AppContext);</code>
 
-Note: This is unstable version
+Note: This is unstable version and may recieved a huge update in the future 
+
+# Installation 
+
+<b>Step 1</b>: Dowload the droid.aar file to your computer.
+
+
+<b>Step 2</b>: Right click your app folder then select then click <code>Open Module Settings</code>
+<img src="http://edio.esy.es/droid/droid_imagestep1.png">
+
+<b>Step 3</b>: Click the add icon to add the AAR file/package</code>
+<img src="http://edio.esy.es/droid/droid_imagestep2.png">
+
+<b>Step 4</b>: Import the AAR file/package then a new will appear, then browse your AAR file</code>
+<img src="http://edio.esy.es/droid/droid_imagestep3.png">
+
+<b>Step 5</b>: Click the app folder then add the module(follow the steps from screen shot)</code>
+<img src="http://edio.esy.es/droid/droid_imagestep4.png">
+
+<b>Step 6</b>: The select the droid module and click Ok</code>
+<img src="http://edio.esy.es/droid/droid_imagestep6.png">
+
+<b>Step 7</b>: Finally import droid library to your java code, and Done! :)</code>
+<img src="http://edio.esy.es/droid/droid_imagestep7.png">
+
+
+
+
 
 ## HTTP
 
