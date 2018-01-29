@@ -194,6 +194,46 @@ orders.$Delete("Item.txt");
 orders.$DeleteDir();
 ```
 
+## View
+
+<code>CoreView view = new CoreView(droid,(Button)findViewById(R.id.clickable));</code>
+
+
+### Event
+```
+view.$Event().$Click(new Event() {
+          @Override
+          public Boolean Run(EventResult eventResult) {
+              return null;
+          }
+});
+```
+
+Other Events:
+
+<ul>
+<li>$Keypress</li>
+<li>$Touch</li>
+<li>$Focus</li>
+
+
+</ul>
+
+EventResult Properties:
+
+<ul>
+<li>$View- View</li>
+<li>$HasFocus- Boolean</li>
+<li>$KeyCode- Integer</li>
+<li>$KeyEvent- $KeyEvent</li>
+<li>$MotionEvent- MotionEvent</li>
+
+</ul>
+
+
+
+
+
 
 
 
