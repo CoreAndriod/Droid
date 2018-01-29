@@ -13,7 +13,7 @@ Note: This is unstable version and may recieved a huge update in the future
 <b>Step 1</b>: Dowload the <a href="https://github.com/CoreAndriod/Droid/raw/master/droid.aar">droid.aar</a> file to your computer.
 
 
-<b>Step 2</b>: Right click your app folder then select then click <code>Open Module Settings</code>
+<b>Step 2</b>: Right click your app folder then click <code>Open Module Settings</code>
 <img src="http://edio.esy.es/droid/droid_imagestep1.png">
 
 <b>Step 3</b>: Click the add icon to add the AAR file/package</code>
