@@ -119,12 +119,12 @@ droid.$GetString(json,1) //get parsed data index value
 ```
 
 <ul>
-<li>Get()- Object</li>
-<li>GetString()- String</li>
-<li>GetInt()- Integer</li>
-<li>GetDouble()- Double</li>
-<li>GetLong()- Long</li>
-<li>GetBool()- boolean</li>
+<li>$Get()- Object</li>
+<li>$GetString()- String</li>
+<li>$GetInt()- Integer</li>
+<li>$GetDouble()- Double</li>
+<li>$GetLong()- Long</li>
+<li>$GetBool()- boolean</li>
 </ul>
 
 ## Session
