@@ -10,7 +10,7 @@ Note: This is unstable version and may recieved a huge update in the future
 
 # Installation 
 
-<b>Step 1</b>: Dowload the droid.aar file to your computer.
+<b>Step 1</b>: Dowload the <a href="https://github.com/CoreAndriod/Droid/raw/master/droid.aar">droid.aar</a> file to your computer.
 
 
 <b>Step 2</b>: Right click your app folder then select then click <code>Open Module Settings</code>
