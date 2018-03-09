@@ -15,7 +15,7 @@ Note: This is unstable version and may recieved a huge update in the future
 allprojects {
 		repositories {
 			...
-			maven { url 'https://jitpack.io' } // add this
+			maven { url 'https://jitpack.io' } 
 		}
 	}
 ```
