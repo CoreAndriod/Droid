@@ -10,8 +10,22 @@ Note: This is unstable version and may recieved a huge update in the future
 
 # Installation 
 
-<b>Step 1</b>: Dowload the <a href="https://github.com/CoreAndriod/Droid/raw/master/droid.aar">droid.aar</a> file to your computer.
+<b>Step 1</b>: Add it in your root build.gradle at the end of repositories.
+```
+allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' } // add this
+		}
+	}
+```
+<b>Step 2</b>: Add the dependencys.
 
+```
+dependencies {
+	        compile 'com.github.coreandroid:Droid:v1.0-beta.0'
+}
+```
 
 <b>Step 2</b>: Right click your app folder then click <code>Open Module Settings</code>
 <img src="http://edio.esy.es/droid/droid_imagestep1.png">
