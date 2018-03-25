@@ -1,6 +1,10 @@
 package com.core.lib;
 
+import android.graphics.Bitmap;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 /**
  * Created by l on 23/01/2018.
@@ -12,7 +16,7 @@ public class CoreView {
     private Droid core;
     public  CoreView(Droid core,View v){
 
-      this.v = v;
+      this.v = (v);
       this.core = core;
 
     }
@@ -32,6 +36,30 @@ public class CoreView {
 
 
     public View $GetView(){
+
+        return this.v;
+
+    }
+
+    public View $Text(String Text){
+
+        ((TextView)this.v).setText(Text);
+
+        return this.v;
+
+    }
+
+    public View $TextValue(String Text){
+
+        ((EditText)this.v).setText(Text);
+
+        return this.v;
+
+    }
+
+    public View $Image(Bitmap bmp){
+
+        ((ImageView)this.v).setImageBitmap(bmp);
 
         return this.v;
 

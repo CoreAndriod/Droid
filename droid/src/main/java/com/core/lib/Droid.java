@@ -5,8 +5,10 @@ package com.core.lib;
  */
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Context;
 
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
@@ -31,12 +33,14 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.commons.io.FileUtils;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -52,12 +56,15 @@ import java.io.FileWriter;
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
+
+import static android.content.ContentValues.TAG;
 
 
 /**
@@ -68,6 +75,11 @@ public class Droid {
 
     private  Context app;
     private long fileLength=0;
+
+    /**
+     *
+     * @param AppContext
+     */
     public Droid(Context AppContext){
 
         this.app = AppContext;
@@ -83,6 +95,9 @@ public class Droid {
     private static interface ProgressListener {
         void transferred(long num);
     }
+
+
+
     @SuppressWarnings("deprecation")
     private static class Mentity extends MultipartEntity {
 
@@ -139,20 +154,49 @@ public class Droid {
         }
 
     }
+
+    private String inputStreamToString(InputStream is) {
+
+        String line = "";
+        StringBuilder total = new StringBuilder();
+
+        // Wrap a BufferedReader around the InputStream
+        BufferedReader rd = new BufferedReader(new InputStreamReader(is));
+
+        try {
+            // Read response until the end
+            while ((line = rd.readLine()) != null) {
+                total.append(line);
+            }
+        } catch (IOException e) {
+            Log.e(TAG, e.getLocalizedMessage(), e);
+        }
+        catch(Exception e)
+        {
+            Log.e(TAG, e.getLocalizedMessage(), e);
+        }
+
+        // Return full string
+        return total.toString();
+    }
+
+
+
     private class httppostrequest extends AsyncTask<Void,Integer,String> {
         HashMap<String,String> postdata=new HashMap<String,String>();
-        String URL="",ID="";
+        String URL="";
         boolean ERR_NET=false;
-        Runnable r,err=null;
+        HttpRequest irequest;
+        Exception httpe=null;
+        CoreHttpResponsed responsedMessage = new CoreHttpResponsed();
 
 
-        public httppostrequest(String ID,String URL,HashMap<String,String> postdata,Runnable r,Runnable err){
+
+        public httppostrequest(String URL,HashMap<String,String> postdata,HttpRequest irequest){
 
             this.URL=URL;
             this.postdata=postdata;
-            this.r=r;
-            this.ID=ID;
-            if(err!=null){this.err=err;}
+            this.irequest = irequest;
 
         }
 
@@ -166,7 +210,7 @@ public class Droid {
 
             HttpClient httpclient = new DefaultHttpClient();
             HttpPost httppost = new HttpPost(URL);
-            CoreHttpResponsed responsedMessage = new CoreHttpResponsed();
+
             try{
 
 
@@ -181,8 +225,9 @@ public class Droid {
 
 
                 for (Map.Entry<String,String> post : postdata.entrySet()) {
-                    post.setValue("");
+
                     entity.addPart(post.getKey(),new StringBody(post.getValue()));
+
                 }
 
                 httppost.setEntity(entity);
@@ -190,23 +235,20 @@ public class Droid {
                 // Making server call
                 HttpResponse response = httpclient.execute(httppost);
                 HttpEntity r_entity = response.getEntity();
-                responsedMessage.$Data = EntityUtils.toString(r_entity);
+                responsedMessage.$Data =  inputStreamToString(response.getEntity().getContent());
                 responsedMessage.$Code = response.getStatusLine().getStatusCode();
-                $httpResponse.put(ID, responsedMessage);
+                if(responsedMessage.$Code != 200) ERR_NET =true;
 
             }
             catch (ClientProtocolException e) {
-                responsedMessage.$IsNotSent = true;
-                responsedMessage.$Error_Message = e.toString();
-                $httpResponse.put(ID, responsedMessage);
-                ERR_NET=true;
-                Log.e("CORE PostRequest", e.toString());
+                ERR_NET =true;
+
+                httpe = e;
+
             } catch (IOException e) {
-                ERR_NET=true;
-                responsedMessage.$IsNotSent = true;
-                responsedMessage.$Error_Message = e.toString();
-                $httpResponse.put(ID, responsedMessage);
-                Log.e("CORE PostRequest",e.toString());
+                ERR_NET =true;
+
+                httpe = e;
             }
 
 
@@ -219,29 +261,34 @@ public class Droid {
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
             if(!ERR_NET){
-                r.run();
+                irequest.OnSuccess(responsedMessage);
             }else{
-
-                if(err != null) err.run();
+                if(httpe == null) {
+                    irequest.OnError(responsedMessage);
+                }else{
+                    irequest.OnHttpError(httpe);
+                }
             }
         }
     }
 
+    /**
+     *
+     */
     private class httpgetrequest extends AsyncTask<Void,Integer,String> {
 
-        String URL="",ID="";
+        String URL="";
         boolean ERR_NET=false;
-        Runnable r,err=null;
+        HttpRequest irequest;
+        Exception httpe=null;
+
+
         CoreHttpResponsed responsedMessage = new CoreHttpResponsed();
 
-        public httpgetrequest(String ID,String URL,Runnable r,Runnable err){
+        public httpgetrequest(String URL,HttpRequest irequest){
 
             this.URL=URL;
-
-            this.r=r;
-            this.ID=ID;
-            if(err!=null){this.err=err;}
-
+            this.irequest = irequest;
         }
 
         @Override
@@ -272,23 +319,19 @@ public class Droid {
                 HttpEntity r_entity = response.getEntity();
                 responsedMessage.$Data = EntityUtils.toString(r_entity);
                 responsedMessage.$Code = response.getStatusLine().getStatusCode();
-                $httpResponse.put(ID, responsedMessage);
+
+                if(responsedMessage.$Code != 200) ERR_NET =true;
+
             }
             catch (ClientProtocolException e) {
 
-                ERR_NET=true;
+                ERR_NET =true;
+                httpe = e;
 
-                responsedMessage.$IsNotSent = true;
-                responsedMessage.$Error_Message =e.toString();
-                $httpResponse.put(ID, responsedMessage);
-                Log.e("CORE","GetRequest error:" +e.toString());
             } catch (IOException e) {
-                ERR_NET=true;
 
-                responsedMessage.$IsNotSent = true;
-                responsedMessage.$Error_Message =e.toString();
-                $httpResponse.put(ID, responsedMessage);
-                Log.e("CORE","GetRequest error:" +e.toString());
+                ERR_NET =true;
+                httpe = e;
             }
 
 
@@ -301,28 +344,31 @@ public class Droid {
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
             if(!ERR_NET){
-                r.run();
+                irequest.OnSuccess(responsedMessage);
             }else{
-                if(err != null) err.run();
+                if(httpe == null) {
+                    irequest.OnError(responsedMessage);
+                }else{
+                    irequest.OnHttpError(httpe);
+                }
             }
         }
     }
 
     private class httpdeleterequest extends AsyncTask<Void,Integer,String> {
 
-        String URL="",ID="";
+        String URL="";
         boolean ERR_NET=false;
-        Runnable r,err=null;
+        HttpRequest irequest;
+        Exception httpe=null;
+
+
         CoreHttpResponsed responsedMessage = new CoreHttpResponsed();
 
-        public httpdeleterequest(String ID,String URL,Runnable r,Runnable err){
+        public httpdeleterequest(String URL,HttpRequest irequest){
 
             this.URL=URL;
-
-            this.r=r;
-            this.ID=ID;
-            if(err!=null){this.err=err;}
-
+            this.irequest = irequest;
         }
 
         @Override
@@ -353,22 +399,19 @@ public class Droid {
                 HttpEntity r_entity = response.getEntity();
                 responsedMessage.$Data = EntityUtils.toString(r_entity);
                 responsedMessage.$Code = response.getStatusLine().getStatusCode();
-                $httpResponse.put(ID, responsedMessage);
+
+                if(responsedMessage.$Code != 200) ERR_NET =true;
 
             }
             catch (ClientProtocolException e) {
 
-                ERR_NET=true;
-                responsedMessage.$Error_Message = e.toString();
-                responsedMessage.$IsNotSent = true;
-                $httpResponse.put(ID, responsedMessage);
-                Log.e("CORE","$DeleteRequest error:" +e.toString());
+                ERR_NET =true;
+                httpe = e;
+
             } catch (IOException e) {
-                ERR_NET=true;
-                responsedMessage.$Error_Message =e.toString();
-                responsedMessage.$IsNotSent = true;
-                $httpResponse.put(ID, responsedMessage);
-                Log.e("CORE","$DeleteRequest error:" +e.toString());
+
+                ERR_NET =true;
+                httpe = e;
             }
 
 
@@ -381,27 +424,33 @@ public class Droid {
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
             if(!ERR_NET){
-                r.run();
+                irequest.OnSuccess(responsedMessage);
             }else{
-                if(err != null) err.run();
+                if(httpe == null) {
+                    irequest.OnError(responsedMessage);
+                }else{
+                    irequest.OnHttpError(httpe);
+                }
             }
         }
     }
 
-    private class httputrequest extends AsyncTask<Void,Integer,String> {
+
+    private class httpputrequest extends AsyncTask<Void,Integer,String> {
         HashMap<String,String> postdata=new HashMap<String,String>();
-        String URL="",ID="";
+        String URL="";
         boolean ERR_NET=false;
-        Runnable r,err=null;
+        HttpRequest irequest;
+        Exception httpe=null;
         CoreHttpResponsed responsedMessage = new CoreHttpResponsed();
 
-        public httputrequest(String ID,String URL,HashMap<String,String> postdata,Runnable r,Runnable err){
+
+
+        public httpputrequest(String URL,HashMap<String,String> postdata,HttpRequest irequest){
 
             this.URL=URL;
             this.postdata=postdata;
-            this.r=r;
-            this.ID=ID;
-            if(err!=null){this.err=err;}
+            this.irequest = irequest;
 
         }
 
@@ -414,7 +463,7 @@ public class Droid {
         protected String doInBackground(Void... params) {
 
             HttpClient httpclient = new DefaultHttpClient();
-            HttpPut httppost = new HttpPut(URL);
+            HttpPut request = new HttpPut(URL);
 
             try{
 
@@ -430,34 +479,30 @@ public class Droid {
 
 
                 for (Map.Entry<String,String> post : postdata.entrySet()) {
-                    post.setValue("");
+
                     entity.addPart(post.getKey(),new StringBody(post.getValue()));
+
                 }
 
-                httppost.setEntity(entity);
+                request.setEntity(entity);
 
                 // Making server call
-                HttpResponse response = httpclient.execute(httppost);
+                HttpResponse response = httpclient.execute(request);
                 HttpEntity r_entity = response.getEntity();
-                responsedMessage.$Data = EntityUtils.toString(r_entity);
+                responsedMessage.$Data =  inputStreamToString(response.getEntity().getContent());
                 responsedMessage.$Code = response.getStatusLine().getStatusCode();
-                $httpResponse.put(ID, responsedMessage);
+                if(responsedMessage.$Code != 200) ERR_NET =true;
 
             }
             catch (ClientProtocolException e) {
+                ERR_NET =true;
 
-                ERR_NET=true;
-                responsedMessage.$Error_Message = e.toString();
-                responsedMessage.$IsNotSent = true;
-                $httpResponse.put(ID, responsedMessage);
-                Log.e("CORE","PostRequest error:" +e.toString());
+                httpe = e;
+
             } catch (IOException e) {
-                ERR_NET=true;
+                ERR_NET =true;
 
-                responsedMessage.$Error_Message = e.toString();
-                responsedMessage.$IsNotSent = true;
-                $httpResponse.put(ID, responsedMessage);
-                Log.e("CORE","PostRequest error:" +e.toString());
+                httpe = e;
             }
 
 
@@ -470,27 +515,39 @@ public class Droid {
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
             if(!ERR_NET){
-                r.run();
+                irequest.OnSuccess(responsedMessage);
             }else{
-                if(err != null) err.run();
+                if(httpe == null) {
+                    irequest.OnError(responsedMessage);
+                }else{
+                    irequest.OnHttpError(httpe);
+                }
             }
         }
     }
 
     private class httpupload extends AsyncTask<Void,Integer,String>{
         HashMap<String,String> postdata=new HashMap<String,String>();
-        String URL="",ID="";
-        Runnable r,prog,er;
+        String URL="";
+        HttpFileRequest ifilerequest = null;
         File file;
         boolean ERR_NET=false;
-        public httpupload(String ID, String URL, File file, HashMap<String,String> postdata, Runnable prog, Runnable r, Runnable er){
+        Exception httpe=null;
+        CoreHttpResponsed responsedMessage = new CoreHttpResponsed();
+
+
+        /**
+         *
+         * @param URL
+         * @param file
+         * @param postdata
+         * @param ifilerequest
+         */
+        public httpupload(String URL, File file, HashMap<String,String> postdata,HttpFileRequest ifilerequest){
 
             this.URL=URL;
             this.postdata=postdata;
-            this.r=r;
-            this.er = er;
-            this.ID=ID;
-            this.prog=prog;
+            this.ifilerequest = ifilerequest;
             this.file=file;
 
         }
@@ -503,11 +560,7 @@ public class Droid {
         @Override
         protected void onProgressUpdate(Integer... values) {
             super.onProgressUpdate(values);
-            $progData.put(ID, values[0]);
-
-            if(prog!=null) prog.run();
-
-
+            ifilerequest.OnProgress(values[0]);
         }
 
         @Override
@@ -518,7 +571,7 @@ public class Droid {
             CoreHttpResponsed responsedMessage = new CoreHttpResponsed();
             HttpClient httpclient = new DefaultHttpClient();
             HttpPost httppost = new HttpPost(URL);
-            $http.put(ID,httpclient);
+
 
             try{
 
@@ -528,6 +581,7 @@ public class Droid {
 
                             @Override
                             public void transferred(long num) {
+
                                 publishProgress((int) ((num / (float) fileLength) * 100));
 
                             }
@@ -544,23 +598,18 @@ public class Droid {
                 // Making server call
                 HttpResponse response = httpclient.execute(httppost);
                 HttpEntity r_entity = response.getEntity();
-                responsedMessage.$Data = EntityUtils.toString(r_entity);
+
+                responsedMessage.$Data =  inputStreamToString(response.getEntity().getContent());
                 responsedMessage.$Code = response.getStatusLine().getStatusCode();
-                $httpResponse.put(ID, responsedMessage);
+                if(responsedMessage.$Code != 200) ERR_NET =true;
 
             }
             catch (ClientProtocolException e) {
-                responsedMessage.$Error_Message  =e.toString();
-                responsedMessage.$IsNotSent = true;
-                $httpResponse.put(ID, responsedMessage);
-                Log.e("CORE http upload", e.toString());
+                httpe = e;
                 ERR_NET = true;
 
             } catch (IOException e) {
-                responsedMessage.$Error_Message  =e.toString();
-                responsedMessage.$IsNotSent = true;
-                $httpResponse.put(ID, responsedMessage);
-                Log.e("CORE http upload", e.toString());
+                httpe = e;
                 ERR_NET = true;
             }
 
@@ -571,8 +620,15 @@ public class Droid {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            if(r!=null) r.run();
-            else if(ERR_NET && er!=null) er.run();
+            if(!ERR_NET){
+                ifilerequest.OnSuccess(responsedMessage);
+            }else{
+                if(httpe == null) {
+                    ifilerequest.OnError(responsedMessage);
+                }else{
+                    ifilerequest.OnHttpError(httpe);
+                }
+            }
         }
     }
 
@@ -641,43 +697,95 @@ public class Droid {
 
 
     // HTTP ----------------------------------------------------------------------------
-    public void $PostRequest(String REQUEST_ID, String URL, HashMap<String,String> POSTDATA, Runnable ONSUCCESS, Runnable ONERROR){
 
-        new httppostrequest(REQUEST_ID,URL,POSTDATA,ONSUCCESS,ONERROR).execute();
+    /**
+     *
+     * @param URL
+     * @param POSTDATA
+     * @param irequest
+     */
+    public void $PostRequest( String URL, HashMap<String,String> POSTDATA, HttpRequest irequest){
 
-    }
-
-    public void $GetRequest(String REQUEST_ID, String URL, Runnable ONSUCCESS, Runnable ONERROR){
-
-        new httpgetrequest(REQUEST_ID,URL,ONSUCCESS,ONERROR).execute();
-
-    }
-
-    public void $DeleteRequest(String REQUEST_ID, String URL, Runnable ONSUCCESS, Runnable ONERROR){
-
-        new httpdeleterequest(REQUEST_ID,URL,ONSUCCESS,ONERROR).execute();
+        new httppostrequest(URL,POSTDATA,irequest).execute();
 
     }
 
-    public void $PutRequest(String REQUEST_ID, String URL, HashMap<String,String> POSTDATA, Runnable ONSUCCESS, Runnable ONERROR){
+    /**
+     *
+     * @param URL
+     * @param request
+     */
+    public void $GetRequest(String URL, HttpRequest request){
 
-        new httputrequest(REQUEST_ID,URL,POSTDATA,ONSUCCESS,ONERROR).execute();
+        new httpgetrequest(URL, request).execute();
 
     }
 
-    public void $Upload(String ID,String URL,File FILE,HashMap<String,String> POSTDATA,Runnable ONPROGRESS,Runnable ONLOAD,Runnable ERROR){
+    /**
+     *
+     * @param URL
+     * @param request
+     */
+    public void $DeleteRequest( String URL, HttpRequest request){
 
-        new httpupload(ID,URL,FILE,POSTDATA,ONPROGRESS,ONLOAD,ERROR).execute();
+        new httpdeleterequest(URL,request).execute();
 
     }
 
-    public void $Download(final String URL_,String PathName,final String Filename,final Runnable r){
-        final File root = new File(PathName);
+    /**
+     *
+     * @param URL
+     * @param POSTDATA
+     * @param irequest
+     */
+    public void $PutRequest( String URL, HashMap<String,String> POSTDATA, HttpRequest irequest){
+
+        new httpputrequest(URL,POSTDATA,irequest).execute();
+
+    }
+
+
+    /**
+     *
+     * @param URL
+     * @param FILE
+     * @param POSTDATA
+     * @param ifilerequest
+     */
+    public void $Upload(String URL,File FILE,HashMap<String,String> POSTDATA,HttpFileRequest ifilerequest){
+
+        new httpupload(URL,FILE,POSTDATA,ifilerequest).execute();
+
+    }
+
+    /**
+     *
+     * @param URL_
+     * @param DistPath
+     * @param ifilerequest
+     */
+    public void $Download(final String URL_, final String DistPath, final HttpFileRequest ifilerequest){
+        final File root = new File(DistPath);
+
+
+
+
         new AsyncTask<String, Integer,String>(){
 
+            boolean ERR_NET=false;
+            Exception httpe = null;
+            CoreHttpResponsed responsedMessage = new CoreHttpResponsed();
+            byte[] downloadedFile = null;
             @Override
             protected void onPreExecute() {
                 super.onPreExecute();
+            }
+
+
+            @Override
+            protected void onProgressUpdate(Integer... values) {
+                super.onProgressUpdate(values);
+                ifilerequest.OnProgress(values[0]);
             }
 
             @Override
@@ -688,14 +796,25 @@ public class Droid {
                 OutputStream output = null;
                 HttpURLConnection connection = null;
 
+
                 try {
                     URL url = new URL(URL_);
                     connection = (HttpURLConnection) url.openConnection();
                     connection.connect();
                     int fileLength = connection.getContentLength();
 
+                    responsedMessage.$Code = connection.getResponseCode();
+
+                    //if response code is not 200 then get the response as string
+                    if(responsedMessage.$Code != 200){
+
+                        responsedMessage.$Data = connection.getResponseMessage();
+                        ERR_NET = true;
+
+                    }
+
                     input = connection.getInputStream();
-                    output = new FileOutputStream(root+"/"+Filename);
+                    output = new FileOutputStream(root);
                     byte data[] = new byte[4096];
                     long total = 0;
                     int count;
@@ -708,21 +827,39 @@ public class Droid {
                         }
                         total += count;
                         // publishing the progress....
-                        if (fileLength > 0) // only if total length is known
+                        if (fileLength > 0) {
+                            // only if total length is known
                             publishProgress((int) (total * 100 / fileLength));
+
+                        }
+
                         output.write(data, 0, count);
 
                     }
 
+                     responsedMessage.$FileContent = data;
 
-                }catch (IOException e){}
+                }catch (IOException e){
+
+                    httpe = e;
+                    ERR_NET = true;
+
+                }
                 return null;
             }
 
             @Override
             protected void onPostExecute(String s) {
                 super.onPostExecute(s);
-                r.run();
+                if(!ERR_NET){
+                    ifilerequest.OnSuccess(responsedMessage);
+                }else{
+                    if(httpe == null) {
+                        ifilerequest.OnError(responsedMessage);
+                    }else{
+                        ifilerequest.OnHttpError(httpe);
+                    }
+                }
             }
         }.execute();
 
@@ -732,6 +869,13 @@ public class Droid {
 
 
     // FILE ----------------------------------------------------------------------------
+
+    /**
+     *
+     * @param PathName
+     * @param FOLDER
+     * @return
+     */
     public File $CreateFolder(String PathName,String FOLDER){
 
         File folder = new File(PathName + FOLDER);
@@ -743,6 +887,13 @@ public class Droid {
 
     }
 
+    /**
+     *
+     * @param PathName
+     * @param srcFile
+     * @param srcDST
+     * @return
+     */
     public static boolean $CopyFile(String PathName,String srcFile, String srcDST)  {
 
         File SRC = new File(PathName+""+srcFile);
@@ -775,6 +926,12 @@ public class Droid {
         }
     }
 
+    /**
+     *
+     * @param src
+     * @param dst
+     * @return
+     */
     public boolean $CopyDirectory(String src, String dst) {
 
         File srcDir = new File(src);
@@ -789,7 +946,11 @@ public class Droid {
 
     }
 
-
+    /**
+     *
+     * @param dir
+     * @return
+     */
     public boolean $CleanDirectory(String dir) {
 
         try {
@@ -802,6 +963,11 @@ public class Droid {
 
     }
 
+    /**
+     *
+     * @param dir
+     * @return
+     */
     public boolean $DeleteDirectory(String dir) {
 
         try {
@@ -814,6 +980,12 @@ public class Droid {
 
     }
 
+    /**
+     *
+     * @param PathName
+     * @param FILENAME
+     * @return
+     */
     public Boolean $DeleteFile(String PathName,String FILENAME){
         String output="";
         File folder = new File(PathName+"");
@@ -828,8 +1000,13 @@ public class Droid {
     }
 
 
-
-
+    /**
+     *
+     * @param FILE
+     * @param PathName
+     * @param FILENAME
+     * @return
+     */
     public boolean $WriteFile(byte[] FILE,String PathName,String FILENAME){
 
         File folder = new File(PathName);
@@ -859,7 +1036,12 @@ public class Droid {
         return false;
     }
 
-
+    /**
+     *
+     * @param PathName
+     * @param FILENAME
+     * @return
+     */
     public byte[] $ReadFile(String PathName,String FILENAME){
 
         File folder = new File(PathName);
@@ -892,9 +1074,13 @@ public class Droid {
     }
 
 
-
-
-
+    /**
+     *
+     * @param PathName
+     * @param FILENAME
+     * @param NL
+     * @return
+     */
     public String $ReadTextFile(String PathName,String FILENAME,Boolean NL){
         String output="";
         File folder = new File(PathName+"");
@@ -922,10 +1108,14 @@ public class Droid {
     }
 
 
-
-
-
-
+    /**
+     *
+     * @param PathName
+     * @param FILENAME
+     * @param CONTENT
+     * @param APPEND
+     * @return
+     */
     public Boolean $WriteTextFile(String PathName,String FILENAME,String CONTENT,Boolean APPEND){
 
 
@@ -958,8 +1148,11 @@ public class Droid {
     }
 
 
-
-
+    /**
+     *
+     * @param strJSON
+     * @return
+     */
     //string to Object parser
     public JSONObject $Json(String strJSON){
 
@@ -979,6 +1172,11 @@ public class Droid {
 
     }
 
+    /**
+     *
+     * @param STRING
+     * @return
+     */
     public JSONArray $JsonArray(String STRING){
         if((STRING==null)||(STRING.equals(""))){
 
@@ -997,6 +1195,12 @@ public class Droid {
         return output;
     }
 
+    /**
+     *
+     * @param JSON
+     * @param KEY
+     * @return
+     */
     public String $GetString(JSONObject JSON,String KEY){
         String output="";
         if(JSON.has(KEY)){
@@ -1012,6 +1216,12 @@ public class Droid {
         return output;
     }
 
+    /**
+     *
+     * @param JSON
+     * @param KEY
+     * @return
+     */
     public Boolean $GetBool(JSONObject JSON,String KEY){
         Boolean output=false;
         if(JSON.has(KEY)){
@@ -1027,6 +1237,13 @@ public class Droid {
         return output;
     }
 
+
+    /**
+     *
+     * @param JSON
+     * @param KEY
+     * @return
+     */
     public int $GetInt(JSONObject JSON,String KEY){
         int output=0;
         if(JSON.has(KEY)){
@@ -1042,6 +1259,13 @@ public class Droid {
         return output;
     }
 
+
+    /**
+     *
+     * @param JSON
+     * @param KEY
+     * @return
+     */
     public double $GetDouble(JSONObject JSON,String KEY){
         double output=0;
         if(JSON.has(KEY)){
@@ -1057,6 +1281,13 @@ public class Droid {
         return output;
     }
 
+
+    /**
+     *
+     * @param JSON
+     * @param KEY
+     * @return
+     */
     public long $GetLong(JSONObject JSON,String KEY){
         long output=0;
         if(JSON.has(KEY)){
@@ -1072,6 +1303,12 @@ public class Droid {
         return output;
     }
 
+    /**
+     *
+     * @param JSON
+     * @param KEY
+     * @return
+     */
     public Object $Get(JSONObject JSON,String KEY){
         Object output=0;
         if(JSON.has(KEY)){
@@ -1087,6 +1324,12 @@ public class Droid {
         return output;
     }
 
+    /**
+     *
+     * @param array
+     * @param Index
+     * @return
+     */
     public String $GetString(JSONArray array,int Index){
         String output="";
         try{
@@ -1101,6 +1344,12 @@ public class Droid {
         return output;
     }
 
+    /**
+     *
+     * @param array
+     * @param Index
+     * @return
+     */
     public Boolean $GetBool(JSONArray array,int Index){
         Boolean output=false;
 
@@ -1117,6 +1366,13 @@ public class Droid {
         return output;
     }
 
+
+    /**
+     *
+     * @param array
+     * @param Index
+     * @return
+     */
     public int $GetInt(JSONArray array,int Index){
         int output=0;
 
@@ -1132,6 +1388,13 @@ public class Droid {
         return output;
     }
 
+
+    /**
+     *
+     * @param array
+     * @param Index
+     * @return
+     */
     public double $GetDouble(JSONArray array,int Index){
         double output=0;
 
@@ -1147,6 +1410,12 @@ public class Droid {
         return output;
     }
 
+    /**
+     *
+     * @param array
+     * @param Index
+     * @return
+     */
     public long $GetLong(JSONArray array,int Index){
         long output=0;
 
@@ -1162,6 +1431,12 @@ public class Droid {
         return output;
     }
 
+    /**
+     *
+     * @param array
+     * @param Index
+     * @return
+     */
     public Object $Get(JSONArray array,int Index){
         Object output=0;
 
@@ -1178,7 +1453,11 @@ public class Droid {
         return output;
     }
 
-
+    /**
+     *
+     * @param v
+     * @param e
+     */
     public void $Click(View v,final Event e){
 
         v.setOnClickListener(new View.OnClickListener() {
@@ -1193,7 +1472,11 @@ public class Droid {
 
     }
 
-
+    /**
+     *
+     * @param v
+     * @param e
+     */
     public void $Focus(View v,final Event e){
 
         v.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -1208,7 +1491,11 @@ public class Droid {
 
     }
 
-
+    /**
+     *
+     * @param v
+     * @param e
+     */
     public void $KeyPress(View v,final Event e){
 
         v.setOnKeyListener(new View.OnKeyListener() {
@@ -1227,11 +1514,11 @@ public class Droid {
     }
 
 
-
-
-
-
-
+    /**
+     *
+     * @param v
+     * @param e
+     */
     public void $Touch(View v,final Event e){
 
         v.setOnTouchListener(new View.OnTouchListener() {
@@ -1247,7 +1534,10 @@ public class Droid {
     }
 
 
-
+    /**
+     *
+     * @return
+     */
     public Boolean $HasInternetAccess(){
 
         ConnectivityManager connectivityManager = (ConnectivityManager) app.getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -1256,7 +1546,12 @@ public class Droid {
     }
 
 
-
+    /**
+     *
+     * @param IMAGEVIEW
+     * @param URL
+     * @param ROUNDPX
+     */
     public void $GetUrlImage(final View IMAGEVIEW,final String URL,final Integer ROUNDPX){
 
         new AsyncTask<String,Void,Bitmap>() {
@@ -1289,4 +1584,54 @@ public class Droid {
         };
 
     }
+
+    /**
+     * utils
+     */
+
+    public AlertDialog.Builder $Alert(String message,final Runnable r){
+
+        AlertDialog.Builder abuilder = new AlertDialog.Builder(app);
+        abuilder.setMessage(message);
+        abuilder.setNeutralButton("Ok", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                 if(r != null) r.run();
+            }
+        });
+
+
+        return abuilder;
+
+
+    }
+
+
+    public AlertDialog.Builder $Dialog(String message,final String PositiveText,final String NegativeText,final Dialog d){
+
+        AlertDialog.Builder abuilder = new AlertDialog.Builder(app);
+        abuilder.setMessage(message);
+        abuilder.setPositiveButton(PositiveText, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                d.OnPositiveClick(dialog,which);
+            }
+        });
+
+        abuilder.setPositiveButton(NegativeText, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                d.OnPositiveClick(dialog,which);
+            }
+        });
+
+
+        return abuilder;
+
+
+    }
+
+
+
+
 }

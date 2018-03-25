@@ -18,42 +18,42 @@ public class CoreHttp {
     }
 
 
-    public void $Post(String REQUEST_ID, String URL, HashMap<String,String> POSTDATA, Runnable ONSUCCESS, Runnable ONERROR){
+    public void $Post(String URL, HashMap<String,String> POSTDATA,HttpRequest request){
 
-         core.$PostRequest(REQUEST_ID,URL,POSTDATA,ONSUCCESS,ONERROR);
-
-    }
-
-
-    public void $Put(String REQUEST_ID, String URL, HashMap<String,String> POSTDATA, Runnable ONSUCCESS, Runnable ONERROR){
-
-        core.$PutRequest(REQUEST_ID,URL,POSTDATA,ONSUCCESS,ONERROR);
+         core.$PostRequest(URL,POSTDATA,request);
 
     }
 
-    public void $Get(String REQUEST_ID, String URL, Runnable ONSUCCESS, Runnable ONERROR){
 
-        core.$GetRequest(REQUEST_ID,URL,ONSUCCESS,ONERROR);
+    public void $Put( String URL, HashMap<String,String> POSTDATA, HttpRequest request){
 
-    }
-
-    public void $Delete(String REQUEST_ID, String URL, Runnable ONSUCCESS, Runnable ONERROR){
-
-        core.$GetRequest(REQUEST_ID,URL,ONSUCCESS,ONERROR);
+        core.$PutRequest(URL,POSTDATA,request);
 
     }
 
-    public void $Dowload(String URL,CoreFileFolder FOLDER,String FILENAME,Runnable r){
+    public void $Get( String URL, HttpRequest request){
 
-        core.$Download(URL,FOLDER.$Path(),FILENAME,r);
+        core.$GetRequest(URL,request);
 
     }
 
-    public void $Upload(String ID, String URL, String FILEPATH, HashMap<String,String> POSTDATA, Runnable ONPROGRESS, Runnable ONLOAD,Runnable ERROR){
+    public void $Delete( String URL, HttpRequest request){
+
+        core.$DeleteRequest(URL,request);
+
+    }
+
+    public void $Dowload(String URL,String FILENAME,HttpFileRequest request){
+
+        core.$Download(URL,FILENAME,request);
+
+    }
+
+    public void $Upload( String URL, String FILEPATH, HashMap<String,String> POSTDATA, HttpFileRequest request){
 
         File FILE = new File(FILEPATH);
 
-        core.$Upload(ID,URL,FILE,POSTDATA,ONPROGRESS,ONLOAD,ERROR);
+        core.$Upload(URL,FILE,POSTDATA,request);
 
     }
 

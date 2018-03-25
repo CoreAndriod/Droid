@@ -8,6 +8,7 @@ public class CoreHttpResponsed {
 
     public int $Code= 0;
     public String $Data = "";
+    public byte[] $FileContent = null;
     public String $Error_Message = "";
     public boolean $IsNotSent = false;
 
