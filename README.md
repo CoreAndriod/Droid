@@ -32,16 +32,7 @@ dependencies {
 
 <code>CoreHttp http = new CoreHttp(droid);</code>
 
-Params:
-
-<ul>
-
-<li>REQUEST_ID- String</li>
-<li>URL- String</li>
-<li>POSTDATA- HashMap</li>
-<li>ONSUCCESS- Runnable</li>
-<li>ONERROR- Runnable</li>
-</ul>
+ 
 
 ### Get Request
 
