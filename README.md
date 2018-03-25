@@ -46,44 +46,122 @@ Params:
 ### Get Request
 
 ```
-  http.$Get("GET_ORDER", "http://api.order.com/getorder", new Runnable() {
+ http.$Get("http://api.order.com/getorder", new HttpRequest() {
             @Override
-            public void run() {
-            
-             droid.$httpResponse.get("GET_ORDER").$Data // get response
-             
-            }
-        }, new Runnable() {
-            @Override
-            public void run() {
+            public void OnSuccess(CoreHttpResponsed response) {
                 
+               //on success
+               String data = response.$Data; // get request data
+               int StatusCode = response.$Code; // get status code  
+	       
             }
-  });
+
+           @Override
+            public void OnError(CoreHttpResponsed response) {
+               //on request error
+            }
+
+            @Override
+            public void OnHttpError(Exception e) {
+              // on http error  
+            }
+   });    
 ```
 
 ### Post Request
 
 ```
- HashMap postdata = new HashMap();
+HashMap postdata = new HashMap();
         postdata.put("Item","Apple");
-        postdata.put("Note","Some note...");        
-        
-        http.$Post("CREATE_ORDER", "http://api.order.com/createorder",postdata, new Runnable() {
+        postdata.put("Note","Some note...");
+
+        http.$Post("http://api.order.com/createorder", postdata, new HttpRequest() {
             @Override
-            public void run() {
-
-               droid.$httpResponse.get("CREATE_ORDER").$Data // get response
-
+            public void OnSuccess(CoreHttpResponsed response) {
+                
+	       //on success
+               String data = response.$Data; // get request data
+               int StatusCode = response.$Code; // get status code
+		
             }
-        }, new Runnable() {
+
             @Override
-            public void run() {
-
+            public void OnError(CoreHttpResponsed response) {
+               //on request error
             }
-        });
+
+            @Override
+            public void OnHttpError(Exception e) {
+              // on http error  
+            }
+});
 
 
 ```
+
+### Download Request
+
+```
+  http.$Dowload("http://api.order.com/download/order.pdf","YOUR_DIST_FILE_PATH", new HttpFileRequest() {
+             @Override
+             public void OnSuccess(CoreHttpResponsed response) {
+            
+	       //on success
+               byte[] data = response.$FileContent; // get file content
+               int StatusCode = response.$Code; // get status code
+
+             }
+
+             @Override
+             public void OnProgress(Integer ProgressCount) {
+               // on download progress
+             }
+
+             @Override
+             public void OnError(CoreHttpResponsed response) {
+                 
+             }
+
+             @Override
+             public void OnHttpError(Exception e) {
+                 
+             }
+         });
+```
+
+```
+
+ http.$Upload("http://api.order.com/upload","FILE_PATH_TO_UPLOAD",null, new HttpFileRequest() {
+             @Override
+             public void OnSuccess(CoreHttpResponsed response) {
+
+                //on success
+                String data = response.$Data; // get request data
+                int StatusCode = response.$Code; // get status code
+
+             }
+
+             @Override
+             public void OnProgress(Integer ProgressCount) {
+
+                  
+
+             }
+
+             @Override
+             public void OnError(CoreHttpResponsed response) {
+                 
+             }
+
+             @Override
+             public void OnHttpError(Exception e) {
+                 
+             }
+         });
+
+
+```
+
 
 ## JSON Object and JSON Array  Parser
 
