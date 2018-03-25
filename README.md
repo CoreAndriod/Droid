@@ -129,6 +129,8 @@ HashMap postdata = new HashMap();
          });
 ```
 
+### Upload Request
+
 ```
 
  http.$Upload("http://api.order.com/upload","FILE_PATH_TO_UPLOAD",null, new HttpFileRequest() {
