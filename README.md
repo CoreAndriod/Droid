@@ -23,7 +23,7 @@ allprojects {
 
 ```
 dependencies {
-	        compile 'com.github.coreandroid:Droid:v1.0-beta.0'
+	        compile 'com.github.coreandroid:Droid:v1.0-beta.1'
 }
 ```
  
