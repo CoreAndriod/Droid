@@ -6,7 +6,6 @@ package com.core.lib;
 
 public interface HttpRequest {
 
-
     void OnSuccess(CoreHttpResponsed response);
     void OnError(CoreHttpResponsed response);
     void OnHttpError(Exception e);

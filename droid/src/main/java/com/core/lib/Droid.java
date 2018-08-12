@@ -73,7 +73,7 @@ import static android.content.ContentValues.TAG;
 
 public class Droid {
 
-    private  Context app;
+    public   Context app;
     private long fileLength=0;
 
     /**
@@ -189,15 +189,15 @@ public class Droid {
         HttpRequest irequest;
         Exception httpe=null;
         CoreHttpResponsed responsedMessage = new CoreHttpResponsed();
+        HttpPost httpobject = null;
 
 
-
-        public httppostrequest(String URL,HashMap<String,String> postdata,HttpRequest irequest){
+        public httppostrequest(String URL,HashMap<String,String> postdata,HttpRequest irequest,HttpPost httpobject){
 
             this.URL=URL;
             this.postdata=postdata;
             this.irequest = irequest;
-
+            this.httpobject = httpobject;
         }
 
         @Override
@@ -209,7 +209,7 @@ public class Droid {
         protected String doInBackground(Void... params) {
 
             HttpClient httpclient = new DefaultHttpClient();
-            HttpPost httppost = new HttpPost(URL);
+            HttpPost httppost = httpobject;
 
             try{
 
@@ -279,16 +279,19 @@ public class Droid {
 
         String URL="";
         boolean ERR_NET=false;
+        boolean IsAborted = false;
         HttpRequest irequest;
         Exception httpe=null;
+        HttpGet HttpObject=null;
 
 
         CoreHttpResponsed responsedMessage = new CoreHttpResponsed();
 
-        public httpgetrequest(String URL,HttpRequest irequest){
+        public httpgetrequest(String URL,HttpRequest irequest,HttpGet HttpObject){
 
             this.URL=URL;
             this.irequest = irequest;
+            this.HttpObject = HttpObject;
         }
 
         @Override
@@ -300,7 +303,7 @@ public class Droid {
         protected String doInBackground(Void... params) {
 
             HttpClient httpclient = new DefaultHttpClient();
-            HttpGet request = new HttpGet(URL);
+            HttpGet request = HttpObject;
 
             try{
 
@@ -340,6 +343,9 @@ public class Droid {
         }
 
 
+
+
+
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
@@ -348,7 +354,8 @@ public class Droid {
             }else{
                 if(httpe == null) {
                     irequest.OnError(responsedMessage);
-                }else{
+                }
+                else{
                     irequest.OnHttpError(httpe);
                 }
             }
@@ -361,14 +368,16 @@ public class Droid {
         boolean ERR_NET=false;
         HttpRequest irequest;
         Exception httpe=null;
+        HttpDelete httpobject=null;
 
 
         CoreHttpResponsed responsedMessage = new CoreHttpResponsed();
 
-        public httpdeleterequest(String URL,HttpRequest irequest){
+        public httpdeleterequest(String URL,HttpRequest irequest,HttpDelete httpobject){
 
             this.URL=URL;
             this.irequest = irequest;
+            this.httpobject = httpobject;
         }
 
         @Override
@@ -380,7 +389,7 @@ public class Droid {
         protected String doInBackground(Void... params) {
 
             HttpClient httpclient = new DefaultHttpClient();
-            HttpDelete request = new HttpDelete(URL);
+            HttpDelete request = httpobject;
 
             try{
 
@@ -435,7 +444,6 @@ public class Droid {
         }
     }
 
-
     private class httpputrequest extends AsyncTask<Void,Integer,String> {
         HashMap<String,String> postdata=new HashMap<String,String>();
         String URL="";
@@ -443,14 +451,15 @@ public class Droid {
         HttpRequest irequest;
         Exception httpe=null;
         CoreHttpResponsed responsedMessage = new CoreHttpResponsed();
+        HttpPut httpobject= null;
 
 
-
-        public httpputrequest(String URL,HashMap<String,String> postdata,HttpRequest irequest){
+        public httpputrequest(String URL,HashMap<String,String> postdata,HttpRequest irequest,HttpPut httpobject){
 
             this.URL=URL;
             this.postdata=postdata;
             this.irequest = irequest;
+            this.httpobject = httpobject;
 
         }
 
@@ -463,7 +472,7 @@ public class Droid {
         protected String doInBackground(Void... params) {
 
             HttpClient httpclient = new DefaultHttpClient();
-            HttpPut request = new HttpPut(URL);
+            HttpPut request = httpobject;
 
             try{
 
@@ -534,7 +543,7 @@ public class Droid {
         boolean ERR_NET=false;
         Exception httpe=null;
         CoreHttpResponsed responsedMessage = new CoreHttpResponsed();
-
+        HttpPost httpobject = null;
 
         /**
          *
@@ -543,12 +552,13 @@ public class Droid {
          * @param postdata
          * @param ifilerequest
          */
-        public httpupload(String URL, File file, HashMap<String,String> postdata,HttpFileRequest ifilerequest){
+        public httpupload(String URL, File file, HashMap<String,String> postdata,HttpFileRequest ifilerequest,HttpPost httpobject){
 
             this.URL=URL;
             this.postdata=postdata;
             this.ifilerequest = ifilerequest;
             this.file=file;
+            this.httpobject = httpobject;
 
         }
 
@@ -563,6 +573,12 @@ public class Droid {
             ifilerequest.OnProgress(values[0]);
         }
 
+
+        @Override
+        protected void onCancelled() {
+            super.onCancelled();
+        }
+
         @Override
         protected String doInBackground(Void... params) {
 
@@ -570,7 +586,7 @@ public class Droid {
             String responseString = null;
             CoreHttpResponsed responsedMessage = new CoreHttpResponsed();
             HttpClient httpclient = new DefaultHttpClient();
-            HttpPost httppost = new HttpPost(URL);
+            HttpPost httppost = httpobject;
 
 
             try{
@@ -598,7 +614,6 @@ public class Droid {
                 // Making server call
                 HttpResponse response = httpclient.execute(httppost);
                 HttpEntity r_entity = response.getEntity();
-
                 responsedMessage.$Data =  inputStreamToString(response.getEntity().getContent());
                 responsedMessage.$Code = response.getStatusLine().getStatusCode();
                 if(responsedMessage.$Code != 200) ERR_NET =true;
@@ -704,20 +719,9 @@ public class Droid {
      * @param POSTDATA
      * @param irequest
      */
-    public void $PostRequest( String URL, HashMap<String,String> POSTDATA, HttpRequest irequest){
+    public void $PostRequest( String URL, HashMap<String,String> POSTDATA, HttpRequest irequest,HttpPost httpobject){
 
-        new httppostrequest(URL,POSTDATA,irequest).execute();
-
-    }
-
-    /**
-     *
-     * @param URL
-     * @param request
-     */
-    public void $GetRequest(String URL, HttpRequest request){
-
-        new httpgetrequest(URL, request).execute();
+        new httppostrequest(URL,POSTDATA,irequest,httpobject).execute();
 
     }
 
@@ -726,9 +730,20 @@ public class Droid {
      * @param URL
      * @param request
      */
-    public void $DeleteRequest( String URL, HttpRequest request){
+    public void $GetRequest(String URL, HttpRequest request,HttpGet HttpObject){
 
-        new httpdeleterequest(URL,request).execute();
+        new httpgetrequest(URL, request,HttpObject).execute();
+
+    }
+
+    /**
+     *
+     * @param URL
+     * @param request
+     */
+    public void $DeleteRequest( String URL, HttpRequest request,HttpDelete httpobject){
+
+        new httpdeleterequest(URL,request,httpobject).execute();
 
     }
 
@@ -738,9 +753,9 @@ public class Droid {
      * @param POSTDATA
      * @param irequest
      */
-    public void $PutRequest( String URL, HashMap<String,String> POSTDATA, HttpRequest irequest){
+    public void $PutRequest( String URL, HashMap<String,String> POSTDATA, HttpRequest irequest,HttpPut httpobject){
 
-        new httpputrequest(URL,POSTDATA,irequest).execute();
+        new httpputrequest(URL,POSTDATA,irequest,httpobject).execute();
 
     }
 
@@ -752,9 +767,9 @@ public class Droid {
      * @param POSTDATA
      * @param ifilerequest
      */
-    public void $Upload(String URL,File FILE,HashMap<String,String> POSTDATA,HttpFileRequest ifilerequest){
+    public void $Upload(String URL,File FILE,HashMap<String,String> POSTDATA,HttpFileRequest ifilerequest,HttpPost httpobject){
 
-        new httpupload(URL,FILE,POSTDATA,ifilerequest).execute();
+        new httpupload(URL,FILE,POSTDATA,ifilerequest,httpobject).execute();
 
     }
 
@@ -801,6 +816,7 @@ public class Droid {
                     URL url = new URL(URL_);
                     connection = (HttpURLConnection) url.openConnection();
                     connection.connect();
+
                     int fileLength = connection.getContentLength();
 
                     responsedMessage.$Code = connection.getResponseCode();
