@@ -23,7 +23,7 @@ allprojects {
 
 ```
 dependencies {
-	        compile 'com.github.coreandroid:Droid:v1.0-beta.0'
+	        compile 'com.github.coreandroid:Droid:v1.0-beta.1'
 }
 ```
  
@@ -32,16 +32,7 @@ dependencies {
 
 <code>CoreHttp http = new CoreHttp(droid);</code>
 
-Params:
-
-<ul>
-
-<li>REQUEST_ID- String</li>
-<li>URL- String</li>
-<li>POSTDATA- HashMap</li>
-<li>ONSUCCESS- Runnable</li>
-<li>ONERROR- Runnable</li>
-</ul>
+ 
 
 ### Get Request
 
@@ -128,6 +119,8 @@ HashMap postdata = new HashMap();
              }
          });
 ```
+
+### Upload Request
 
 ```
 
